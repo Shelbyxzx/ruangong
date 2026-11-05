@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生选题系统 · 功能介绍</title>
+    <style>
+        /* ==================== 基础与变量 ==================== */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.58);
+            --glass-border: rgba(255, 255, 255, 0.55);
+            --glass-modal: rgba(255, 255, 255, 0.82);
+            --blue: #0071e3;
+            --indigo: #5e5ce6;
+            --green: #34c759;
+            --purple: #af52de;
+            --rose: #ff3b30;
+            --amber: #ff9500;
+            --text: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --radius-lg: 28px;
+            --radius-md: 18px;
+            --radius-sm: 12px;
+            --blur: 20px;
+            --sat: 180%;
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+            --shadow-hover: 0 16px 48px rgba(31, 38, 135, 0.14);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background: #e8e4f0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        /* ==================== 动态渐变背景 ==================== */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.55;
+            z-index: -1;
+            pointer-events: none;
+            animation: float 18s ease-in-out infinite alternate;
+        }
+
+        .bg-blob--1 {
+            width: 520px; height: 520px;
+            background: radial-gradient(circle, #a78bfa, transparent 70%);
+            top: -160px; left: -120px;
+            animation-duration: 20s;
+        }
+
+        .bg-blob--2 {
+            width: 620px; height: 620px;
+            background: radial-gradient(circle, #60a5fa, transparent 70%);
+            bottom: -220px; right: -160px;
+            animation-duration: 26s;
+            animation-delay: -8s;
+        }
+
+        .bg-blob--3 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #f0abfc, transparent 70%);
+            top: 40%; left: 55%;
+            animation-duration: 22s;
+            animation-delay: -4s;
+        }
+
+        @keyframes float {
+            0%   { transform: translate(0, 0) scale(1); }
+            50%  { transform: translate(40px, -30px) scale(1.08); }
+            100% { transform: translate(-30px, 30px) scale(0.95); }
+        }
+
+        /* ==================== 毛玻璃通用卡片 ==================== */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+            -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius-lg);
+        }
+
+        .glass-strong {
+            background: var(--glass-modal);
+            backdrop-filter: blur(28px) saturate(200%);
+            -webkit-backdrop-filter: blur(28px) saturate(200%);
+            border: 1px solid rgba(255,255,255,0.65);
+        }
+
+        /* ==================== 固定导航 ==================== */
+        .navbar {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px;
+            border-radius: 999px;
+            max-width: calc(100vw - 32px);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .navbar::-webkit-scrollbar { display: none; }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px 8px 10px;
+           font-weight: 700;
+            font-size: 14px;
+           white-space: nowrap;
+          color: var(--text);
+          text-decoration: none;
+          cursor: pointer;
+}
+
+        .nav-brand-icon {
+            width: 28px; height: 28px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--blue), var(--indigo));
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: 13px;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(0,113,227,0.3);
+        }
+
+        .nav-link {
+            padding: 8px 15px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.25s ease;
+        }
+
+        .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.5); }
+        .nav-link.active {
+            color: #fff;
+            background: var(--blue);
+            box-shadow: 0 4px 14px rgba(0,113,227,0.3);
+        }
+
+        /* ==================== 布局容器 ==================== */
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 96px 0;
+        }
+
+        .section-head {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .section-eyebrow {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--text) 30%, var(--indigo));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        /* ==================== Hero ==================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 56px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue);
+            background: rgba(0,113,227,0.1);
+            border: 1px solid rgba(0,113,227,0.15);
+            margin-bottom: 24px;
+        }
+
+        .hero-badge-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 3px rgba(52,199,89,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero-title {
+            font-size: clamp(40px, 6vw, 68px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.08;
+            margin-bottom: 22px;
+        }
+
+        .hero-title-accent {
+            background: linear-gradient(135deg, var(--blue) 10%, var(--indigo) 50%, var(--purple) 90%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientShift 6s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 480px;
+            margin-bottom: 32px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 26px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(0,113,227,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(0,113,227,0.4);
+        }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.55);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Hero 右侧流程预览卡片 */
+        .hero-visual {
+            position: relative;
+        }
+
+        .flow-card {
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,113,227,0.06), rgba(94,92,230,0.06));
+            pointer-events: none;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            position: relative;
+        }
+
+        .flow-step:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            left: 21px;
+            top: 46px;
+            bottom: -8px;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(0,113,227,0.3), transparent);
+        }
+
+        .flow-num {
+            width: 44px; height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 17px;
+            font-weight: 800;
+            flex-shrink: 0;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+
+        .flow-num--1 { color: var(--blue); }
+        .flow-num--2 { color: var(--indigo); }
+        .flow-num--3 { color: var(--purple); }
+        .flow-num--4 { color: var(--green); }
+
+        .flow-text strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .flow-text span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== 功能亮点 ==================== */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            padding: 30px 26px;
+            border-radius: var(--radius-md);
+            transition: all 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            width: 50px; height: 50px;
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon--blue  { background: rgba(0,113,227,0.1); }
+        .feature-icon--green { background: rgba(52,199,89,0.1); }
+        .feature-icon--purple{ background: rgba(175,82,222,0.1); }
+        .feature-icon--amber { background: rgba(255,149,0,0.1); }
+        .feature-icon--rose  { background: rgba(255,59,48,0.1); }
+        .feature-icon--indigo{ background: rgba(94,92,230,0.1); }
+
+        .feature-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.04);
+            color: var(--text-secondary);
+        }
+
+        /* ==================== 三轮流程详情 ==================== */
+        .rounds {
+            display: grid;
+            gap: 20px;
+        }
+
+        .round-card {
+            padding: 32px;
+            border-radius: var(--radius-md);
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 24px;
+            align-items: start;
+            transition: all 0.3s ease;
+        }
+
+        .round-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .round-badge {
+            width: 72px; height: 72px;
+            border-radius: 20px;
+            display: grid;
+            place-items: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .round-badge--1 { background: linear-gradient(135deg, var(--blue), #409cff); }
+        .round-badge--2 { background: linear-gradient(135deg, var(--indigo), var(--purple)); }
+        .round-badge--3 { background: linear-gradient(135deg, var(--green), #30d158); }
+
+        .round-body h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .round-body p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .round-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .round-chip {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.7);
+            color: var(--text-secondary);
+        }
+
+        /* ==================== 角色卡片 ==================== */
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .role-card {
+            padding: 32px 28px;
+            border-radius: var(--radius-md);
+            transition: all 0.35s ease;
+            position: relative;
+        }
+
+        .role-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .role-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .role-avatar {
+            width: 48px; height: 48px;
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+        }
+
+        .role-avatar--student { background: rgba(0,113,227,0.12); }
+        .role-avatar--teacher { background: rgba(175,82,222,0.12); }
+        .role-avatar--admin   { background: rgba(255,149,0,0.12); }
+
+        .role-card h3 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .role-card .role-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .role-list {
+            list-style: none;
+            display: grid;
+            gap: 9px;
+        }
+
+        .role-list li {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            line-height: 1.55;
+        }
+
+        .role-list li::before {
+            content: "";
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+
+        .role-card--student .role-list li::before { background: var(--blue); }
+        .role-card--teacher .role-list li::before { background: var(--purple); }
+        .role-card--admin   .role-list li::before { background: var(--amber); }
+
+        /* ==================== 技术栈 ==================== */
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stack-item {
+            padding: 24px 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stack-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stack-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .stack-item strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .stack-item span {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== 局域网 ==================== */
+        .lan-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .lan-card {
+            padding: 32px;
+            border-radius: var(--radius-md);
+        }
+
+        .lan-card h3 {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .lan-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .lan-address {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            background: rgba(0,0,0,0.04);
+            font-family: "SF Mono", "Fira Code", monospace;
+            font-size: 13px;
+            color: var(--blue);
+            margin-bottom: 14px;
+            word-break: break-all;
+        }
+
+        .lan-steps {
+            counter-reset: lan-step;
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+
+        .lan-steps li {
+            counter-increment: lan-step;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            padding-left: 32px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .lan-steps li::before {
+            content: counter(lan-step);
+            position: absolute;
+            left: 0; top: 0;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: grid;
+            place-items: center;
+        }
+
+        /* ==================== Footer ==================== */
+        footer {
+            padding: 48px 0 56px;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        footer .footer-line {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== 滚动入场动画 ==================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.06s; }
+        .reveal-delay-2 { transition-delay: 0.12s; }
+        .reveal-delay-3 { transition-delay: 0.18s; }
+        .reveal-delay-4 { transition-delay: 0.24s; }
+        .reveal-delay-5 { transition-delay: 0.30s; }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 960px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+            .hero-visual { max-width: 440px; }
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+            .role-grid { grid-template-columns: 1fr; }
+            .stack-grid { grid-template-columns: repeat(2, 1fr); }
+            .lan-wrap { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            section { padding: 64px 0; }
+            .container { padding: 0 18px; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .stack-grid { grid-template-columns: 1fr 1fr; }
+            .round-card { grid-template-columns: 1fr; gap: 16px; padding: 24px; }
+            .round-badge { width: 54px; height: 54px; font-size: 22px; border-radius: 16px; }
+            .navbar { top: 10px; }
+            .nav-brand span { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* 无 backdrop-filter 回退 */
+        @supports not (backdrop-filter: blur(1px)) {
+            .glass, .navbar, .btn-ghost {
+                background: rgba(255,255,255,0.92);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 动态背景 -->
+<div class="bg-canvas"></div>
+<div class="bg-blob bg-blob--1"></div>
+<div class="bg-blob bg-blob--2"></div>
+<div class="bg-blob bg-blob--3"></div>
+
+<!-- ==================== 导航 ==================== -->
+<nav class="navbar glass-strong" id="navbar">
+    <a class="nav-brand" href="#hero" aria-label="回到首页">
+      <div class="nav-brand-icon">选</div>
+      <span>学生选题系统</span>
+    </a>
+    <a class="nav-link active" href="#hero">概览</a>
+    <a class="nav-link" href="#features">功能亮点</a>
+    <a class="nav-link" href="#rounds">三轮流程</a>
+    <a class="nav-link" href="#roles">角色权限</a>
+    <a class="nav-link" href="#stack">技术栈</a>
+    <a class="nav-link" href="#lan">局域网联机</a>
+</nav>
+
+<!-- ==================== Hero ==================== -->
+<section class="hero" id="hero">
+    <div class="container">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <div class="hero-badge reveal">
+                     <span class="hero-badge-dot"></span>
+                     随机序号 · 志愿分档 · 按序补选 · 人工调剂
+                </div>
+                <h1 class="hero-title reveal reveal-delay-1">
+                    让选题<br>
+                    <span class="hero-title-accent">真正公平</span><br>
+                    且可复核
+                </h1>
+                <p class="hero-sub reveal reveal-delay-2">
+                    一套面向课程设计场景的局域网选题系统。公开随机种子、只追加审计日志、
+                    三轮渐进式匹配，把“暗箱操作”变成“可离线重放的确定性流程”。
+                </p>
+                <div class="hero-actions reveal reveal-delay-3">
+                    <a class="btn btn-primary" href="#features">了解功能 ↓</a>
+                    <a class="btn btn-ghost" href="#rounds">查看匹配流程</a>
+                </div>
+            </div>
+            <div class="hero-visual reveal reveal-delay-2">
+                <div class="flow-card glass">
+                    <div class="flow-step">
+                        <div class="flow-num flow-num--1">01</div>
+                        <div class="flow-text">
+                            <strong>公开随机序号</strong>
+                            <span>同一公开种子 → 同一洗牌顺序，全员可复核</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num flow-num--2">02</div>
+                        <div class="flow-text">
+                            <strong>第一轮 · 志愿匹配</strong>
+                            <span>按志愿档位统一处理，同档按序号升序录取</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num flow-num--3">03</div>
+                        <div class="flow-text">
+                            <strong>第二轮 · 按序补选</strong>
+                            <span>未匹配学生按序号排队，限时选择剩余名额</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num flow-num--4">04</div>
+                        <div class="flow-text">
+                            <strong>第三轮 · 人工调剂</strong>
+                            <span>教师/管理员兜底，全程写入审计日志</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== 功能亮点 ==================== -->
+<section id="features">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="section-eyebrow">Features</div>
+            <h2 class="section-title">为“公平选题”而设计的核心能力</h2>
+            <p class="section-desc">
+                不只是“能选课”，而是让每一个分配结果都可解释、可追溯、可复现。
+            </p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card glass reveal">
+                <div class="feature-icon feature-icon--blue">🎲</div>
+                <h3>公开种子随机序号</h3>
+                <p>基于 Fisher-Yates 洗牌，公开随机种子。任何人用相同种子即可离线重放出完全相同的序号，杜绝暗箱操作。</p>
+                <span class="feature-tag">可复核性</span>
+            </div>
+            <div class="feature-card glass reveal reveal-delay-1">
+                <div class="feature-icon feature-icon--purple">📋</div>
+                <h3>志愿分档统一匹配</h3>
+                <p>先处理所有人的第一志愿，再处理第二志愿……同一档位内按随机序号升序录取，录满即止。规则对所有学生一致。</p>
+                <span class="feature-tag">公平匹配</span>
+            </div>
+            <div class="feature-card glass reveal reveal-delay-2">
+                <div class="feature-icon feature-icon--green">⏱️</div>
+                <h3>第二轮按序补选</h3>
+                <p>未匹配学生按随机序号依次限时选择剩余名额。超时或放弃自动跳过并顺延，避免流程卡死。</p>
+                <span class="feature-tag">兜底机制</span>
+            </div>
+            <div class="feature-card glass reveal reveal-delay-1">
+                <div class="feature-icon feature-icon--amber">🛠️</div>
+                <h3>人工调剂 + 全程留痕</h3>
+                <p>教师或管理员可对仍未匹配的学生进行人工调剂。每一次操作都写入只追加的审计日志，不可篡改。</p>
+                <span class="feature-tag">可追溯</span>
+            </div>
+            <div class="feature-card glass reveal reveal-delay-2">
+                <div class="feature-icon feature-icon--rose">⚖️</div>
+                <h3>申诉与仲裁</h3>
+                <p>结果公示后学生可提交申诉，管理员调取审计日志进行裁决，裁决结论公开可见。</p>
+                <span class="feature-tag">争议解决</span>
+            </div>
+            <div class="feature-card glass reveal reveal-delay-3">
+                <div class="feature-icon feature-icon--indigo">🔧</div>
+                <h3>规则配置化</h3>
+                <p>志愿数量、补选时限、申诉时长等参数通过后台配置调整，改规则不改代码。</p>
+                <span class="feature-tag">灵活可配</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== 三轮流程 ==================== -->
+<section id="rounds">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="section-eyebrow">Matching Pipeline</div>
+            <h2 class="section-title">三轮渐进式匹配</h2>
+            <p class="section-desc">
+                每一轮都有明确的进入条件和退出条件，逐层兜底，不留“无解”学生。
+            </p>
+        </div>
+        <div class="rounds">
+            <div class="round-card glass reveal">
+                <div class="round-badge round-badge--1">1</div>
+                <div class="round-body">
+                    <h3>志愿匹配 · 按档位统一处理</h3>
+                    <p>
+                        从第一志愿到最后一志愿逐档处理。对每个仍有名额的课题，
+                        取该档位填报此题且未被录取的学生，按随机序号升序录取至名额满。
+                        一轮结束后自动锁定志愿窗口。
+                    </p>
+                    <div class="round-chips">
+                        <span class="round-chip">志愿顺序 = 优先级</span>
+                        <span class="round-chip">同档按序号升序</span>
+                        <span class="round-chip">自动锁窗</span>
+                        <span class="round-chip">结果立即公示</span>
+                    </div>
+                </div>
+            </div>
+            <div class="round-card glass reveal reveal-delay-1">
+                <div class="round-badge round-badge--2">2</div>
+                <div class="round-body">
+                    <h3>按序补选 · 实时排队</h3>
+                    <p>
+                        第一轮未匹配的学生按随机序号排队，依次获得限时补选机会。
+                        可以选择剩余名额中的课题，也可以放弃本轮。超时未操作自动跳过并顺延。
+                    </p>
+                    <div class="round-chips">
+                        <span class="round-chip">随机序号排队</span>
+                        <span class="round-chip">限时选择</span>
+                        <span class="round-chip">超时自动顺延</span>
+                        <span class="round-chip">实时状态可见</span>
+                    </div>
+                </div>
+            </div>
+            <div class="round-card glass reveal reveal-delay-2">
+                <div class="round-badge round-badge--3">3</div>
+                <div class="round-body">
+                    <h3>人工调剂 · 兜底与留痕</h3>
+                    <p>
+                        对第一、二轮仍未匹配的学生，教师可将学生调剂到自己名下仍有名额的课题，
+                        管理员可操作任意课题。调剂理由和操作人一并写入审计日志。
+                    </p>
+                    <div class="round-chips">
+                        <span class="round-chip">教师限自己课题</span>
+                        <span class="round-chip">管理员全量权限</span>
+                        <span class="round-chip">调剂理由留痕</span>
+                        <span class="round-chip">审计可查</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== 角色权限 ==================== -->
+<section id="roles">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="section-eyebrow">Roles</div>
+            <h2 class="section-title">三种角色，各司其职</h2>
+            <p class="section-desc">
+                学生填志愿，教师出题与调剂，管理员控制流程与仲裁。
+            </p>
+        </div>
+        <div class="role-grid">
+            <div class="role-card glass role-card--student reveal">
+                <div class="role-top">
+                    <div class="role-avatar role-avatar--student">🎓</div>
+                    <div>
+                        <h3>学生</h3>
+                        <div class="role-sub">STUDENT</div>
+                    </div>
+                </div>
+                <ul class="role-list">
+                    <li>浏览题库大厅，按教师 / 难度 / 关键词筛选课题</li>
+                    <li>在志愿窗口期内填报和修改志愿，调整优先顺序</li>
+                    <li>查看自己的志愿状态和匹配结果</li>
+                    <li>第二轮补选时按序号限时选择剩余课题</li>
+                    <li>结果公示后提交申诉并查看仲裁结论</li>
+                </ul>
+            </div>
+            <div class="role-card glass role-card--teacher reveal reveal-delay-1">
+                <div class="role-top">
+                    <div class="role-avatar role-avatar--teacher">📖</div>
+                    <div>
+                        <h3>教师</h3>
+                        <div class="role-sub">TEACHER</div>
+                    </div>
+                </div>
+                <ul class="role-list">
+                    <li>发布自建课题（基础课题由管理员维护）</li>
+                    <li>查看选自己课题的学生志愿与匹配状态</li>
+                    <li>关闭自建课题（已有学生填报的不可关闭）</li>
+                    <li>第三轮人工调剂：将未匹配学生调剂到自己名下有余量的课题</li>
+                    <li>查看与自身课题相关的申诉列表</li>
+                </ul>
+            </div>
+            <div class="role-card glass role-card--admin reveal reveal-delay-2">
+                <div class="role-top">
+                    <div class="role-avatar role-avatar--admin">⚙️</div>
+                    <div>
+                        <h3>管理员</h3>
+                        <div class="role-sub">ADMIN</div>
+                    </div>
+                </div>
+                <ul class="role-list">
+                    <li>管理题库：创建基础课题、调整容量与开放状态</li>
+                    <li>生成并公示随机序号（可指定公开种子）</li>
+                    <li>控制轮次：锁窗、执行第一轮、开放第二轮、开关申诉期</li>
+                    <li>查看全量匹配结果、审计日志和用户列表</li>
+                    <li>裁决学生申诉，调整系统规则参数</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== 技术栈 ==================== -->
+<section id="stack">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="section-eyebrow">Tech Stack</div>
+            <h2 class="section-title">轻量、自托管、零外部依赖</h2>
+            <p class="section-desc">
+                单服务同时托管 API 和前端，主机只需双击一个脚本即可启动。
+            </p>
+        </div>
+        <div class="stack-grid">
+            <div class="stack-item glass reveal">
+                <div class="stack-icon">🐍</div>
+                <strong>FastAPI</strong>
+                <span>异步 API 框架</span>
+            </div>
+            <div class="stack-item glass reveal reveal-delay-1">
+                <div class="stack-icon">🗄️</div>
+                <strong>SQLAlchemy + SQLite</strong>
+                <span>ORM · 零配置数据库</span>
+            </div>
+            <div class="stack-item glass reveal reveal-delay-2">
+                <div class="stack-icon">🎨</div>
+                <strong>原生 JS + Tailwind</strong>
+                <span>ES Module · CDN 引入</span>
+            </div>
+            <div class="stack-item glass reveal reveal-delay-3">
+                <div class="stack-icon">🔗</div>
+                <strong>局域网联机</strong>
+                <span>内存令牌 · 审批 · 心跳</span>
+            </div>
+            <div class="stack-item glass reveal">
+                <div class="stack-icon">🧮</div>
+                <strong>Fisher-Yates</strong>
+                <span>确定性洗牌算法</span>
+            </div>
+            <div class="stack-item glass reveal reveal-delay-1">
+                <div class="stack-icon">🔒</div>
+                <strong>加盐 SHA-256</strong>
+                <span>密码存储</span>
+            </div>
+            <div class="stack-item glass reveal reveal-delay-2">
+                <div class="stack-icon">📜</div>
+                <strong>只追加审计日志</strong>
+                <span>关键操作全留痕</span>
+            </div>
+            <div class="stack-item glass reveal reveal-delay-3">
+                <div class="stack-icon">🪟</div>
+                <strong>PowerShell 启动器</strong>
+                <span>局域网自动发现主机</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== 局域网联机 ==================== -->
+<section id="lan">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="section-eyebrow">LAN Mode</div>
+            <h2 class="section-title">一台电脑启动，全班同时使用</h2>
+            <p class="section-desc">
+                主机运行后端，同学在同一局域网打开地址申请接入，主机审批后即可使用。
+            </p>
+        </div>
+        <div class="lan-wrap">
+            <div class="lan-card glass reveal">
+                <h3>🖥️ 主机端</h3>
+                <p>双击启动脚本后，控制台会打印可分享的局域网地址。</p>
+                <div class="lan-address">http://192.168.x.x:8000/</div>
+                <p style="font-size:13px; margin-bottom:0;">
+                    在页面顶部「主机联机管理」中查看待审批申请、在线设备，
+                    并可一键复制分享地址。需要放行防火墙时运行配套的防火墙脚本。
+                </p>
+            </div>
+            <div class="lan-card glass reveal reveal-delay-1">
+                <h3>📱 同学端</h3>
+                <p>在同一局域网内，按以下步骤接入：</p>
+                <ol class="lan-steps">
+                    <li>打开浏览器，输入主机分享的局域网地址</li>
+                    <li>在联机弹窗中填写称呼并提交申请</li>
+                    <li>等待主机在「主机联机管理」中批准</li>
+                    <li>批准后自动获得令牌，直接登录使用</li>
+                </ol>
+                <p style="font-size:12.5px; margin-top:16px; margin-bottom:0; color:var(--text-secondary);">
+                    也可以双击「连接主机.bat」，自动扫描局域网并打开正确的主机页面。
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== Footer ==================== -->
+<footer>
+    <div class="container">
+        <p>© 2026 学生选题系统 · 软件工程实践课程设计</p>
+        <p style="margin-top:8px; font-size:12px; opacity:0.7;">
+            公开种子 · 只追加审计 · 三轮兜底 · 局域网自托管
+        </p>
+    </div>
+</footer>
+
+<script>
+/* ==================== 平滑滚动（原生支持，仅处理导航高亮） ==================== */
+(function () {
+    const nav = document.getElementById('navbar');
+    const links = Array.from(document.querySelectorAll('.nav-link'));
+    const sections = links
+        .map(link => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+
+    // 导航链接点击：滚动后让对应链接进入 active
+    links.forEach(link => {
+        link.addEventListener('click', () => {
+            links.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+
+    // 滚动时根据可见区域更新 active
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = '#' + entry.target.id;
+                links.forEach(l => {
+                    l.classList.toggle('active', l.getAttribute('href') === id);
+                });
+            }
+        });
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+
+    sections.forEach(s => observer.observe(s));
+})();
+
+/* ==================== 滚动入场动画 ==================== */
+(function () {
+    const reveals = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+        reveals.forEach(el => el.classList.add('visible'));
+        return;
+    }
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(el => io.observe(el));
+})();
+</script>
+
+</body>
+</html>
